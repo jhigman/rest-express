@@ -1,0 +1,31 @@
+{
+  "name": "rest-express",
+  "version": "0.2.1",
+  "description": "REST API application with Express, Mongoskin, MongoDB, Mocha and Superagent",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "PORT=3007 ./node_modules/.bin/mocha test -R spec"
+  },
+  "author": "Azat Mardan (http://azat.co/)",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "1.18.2",
+    "express": "4.16.2",
+    "mongodb": "2.2.33",
+    "mongoskin": "2.1.0",
+    "morgan": "1.9.0"
+  },
+  "devDependencies": {
+    "expect.js": "0.3.1",
+    "mocha": "4.0.1",
+    "standard": "10.0.3",
+    "superagent": "3.8.0"
+  },
+  "engines": {
+    "node": "12.x"
+  }
+}
