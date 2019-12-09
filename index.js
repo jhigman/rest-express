@@ -6,12 +6,14 @@ const http = require('http')
 
 const app = express()
 
+const db_url = process.env.MONGODB_URI || 'mongodb://@localhost:27017/test'
+
 app.set('port', process.env.PORT || 3000)
 
 app.use(bodyParser.json())
 app.use(logger())
 
-const db = mongoskin.db('mongodb://@localhost:27017/test')
+const db = mongoskin.db(db_url)
 const id = mongoskin.helper.toObjectID
 
 app.param('collectionName', (req, res, next, collectionName) => {
