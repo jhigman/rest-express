@@ -4,6 +4,8 @@ const bodyParser = require('body-parser')
 const logger = require('morgan')
 const http = require('http')
 
+const Sheets = require('./sheets')
+
 const app = express()
 
 const db_url = process.env.MONGODB_URI || 'mongodb://@localhost:27017/test'
@@ -23,6 +25,12 @@ app.param('collectionName', (req, res, next, collectionName) => {
 
 app.get('/', (req, res, next) => {
   res.send('Select a collection, e.g., /collections/messages')
+})
+
+app.get('/sheet/:sheetId', (req, res, next) => {
+  const sheet = new Sheets(req.params.sheetId)
+  sheet.info()
+  res.send(`Called sheets for ${req.params.sheetId}`)
 })
 
 app.get('/collections/:collectionName', (req, res, next) => {
