@@ -49,6 +49,11 @@ app.get('/jobs', async (req, res, next) => {
   res.send(jobs)
 })
 
+app.get('/jobcount', async (req, res, next) => {
+  const jobCounts = await jobQueue.getJobCounts()
+  res.send(jobCounts)
+})
+
 app.get('/sheet/:sheetId', (req, res, next) => {
   const sheet = new Sheets(req.params.sheetId)
   sheet.info()
