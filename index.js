@@ -3,7 +3,7 @@ const mongoskin = require('mongoskin')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 const http = require('http')
-const Bull = require('bull')
+const Queue = require('bull')
 
 const Sheets = require('./sheets')
 
@@ -19,7 +19,7 @@ app.use(logger())
 const db = mongoskin.db(db_url)
 const id = mongoskin.helper.toObjectID
 
-const jobQueue = new Bull('bull-jobs');
+const jobQueue = new Queue('bull-jobs');
 
 app.param('collectionName', (req, res, next, collectionName) => {
   req.collection = db.collection(collectionName)
@@ -33,9 +33,20 @@ app.get('/', (req, res, next) => {
 app.get('/job/new', async (req, res, next) => {
   const job = await jobQueue.add({
     foo: 'bar',
-    datetime: Date.now()
-  })
+    datetime: Date.now(),
+  },    {delay: 3000}
+  )
   res.send(job)
+})
+
+app.get('/job/:jobId', async (req, res, next) => {
+  const job = await jobQueue.getJob(req.params.jobId)
+  res.send(job)
+})
+
+app.get('/jobs', async (req, res, next) => {
+  const jobs = await jobQueue.getJobs()
+  res.send(jobs)
 })
 
 app.get('/sheet/:sheetId', (req, res, next) => {
@@ -92,10 +103,20 @@ const boot = () => {
     console.info(`Express server listening on port ${app.get('port')}`)
   })
 
-  jobQueue.process(async (job) => {
+  jobQueue.process(function (job, done) {
     console.log("Got a job: " + job.id)
     console.log(job.data)
+
+    setTimeout(function() {
+      console.log(`DONE ${job.id}`)
+      done()
+    }, 2000)
+
   });
+
+  jobQueue.on('completed', job => {
+    console.log(`Job with id ${job.id} has been completed`);
+  })
 
 }
 
