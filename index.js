@@ -3,6 +3,7 @@ const mongoskin = require('mongoskin')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 const http = require('http')
+const Bull = require('bull')
 
 const Sheets = require('./sheets')
 
@@ -18,6 +19,8 @@ app.use(logger())
 const db = mongoskin.db(db_url)
 const id = mongoskin.helper.toObjectID
 
+const jobQueue = new Bull('bull-jobs');
+
 app.param('collectionName', (req, res, next, collectionName) => {
   req.collection = db.collection(collectionName)
   return next()
@@ -25,6 +28,14 @@ app.param('collectionName', (req, res, next, collectionName) => {
 
 app.get('/', (req, res, next) => {
   res.send('Select a collection, e.g., /collections/messages')
+})
+
+app.get('/job/new', async (req, res, next) => {
+  const job = await jobQueue.add({
+    foo: 'bar',
+    datetime: Date.now()
+  })
+  res.send(job)
 })
 
 app.get('/sheet/:sheetId', (req, res, next) => {
@@ -75,10 +86,17 @@ app.delete('/collections/:collectionName/:id', (req, res, next) => {
 })
 
 const server = http.createServer(app)
+
 const boot = () => {
   server.listen(app.get('port'), () => {
     console.info(`Express server listening on port ${app.get('port')}`)
   })
+
+  jobQueue.process(async (job) => {
+    console.log("Got a job: " + job.id)
+    console.log(job.data)
+  });
+
 }
 
 const shutdown = () => {
