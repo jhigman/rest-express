@@ -5,6 +5,9 @@ const logger = require('morgan')
 const http = require('http')
 const Queue = require('bull')
 
+const superagent = require('superagent');
+const jp = require('jsonpath');
+
 const Sheets = require('./sheets')
 
 const app = express()
@@ -52,6 +55,24 @@ app.get('/jobs', async (req, res, next) => {
 app.get('/jobcount', async (req, res, next) => {
   const jobCounts = await jobQueue.getJobCounts()
   res.send(jobCounts)
+})
+
+app.get('/something', async (req, resp, next) => {
+
+  const res = await superagent.get('https://api.nasa.gov/planetary/apod').query({ api_key: 'DEMO_KEY', date: '2017-08-02' })
+
+  console.log(res.headers);
+  console.log(res.body.url);
+  console.log(res.body.explanation);
+
+  console.log(jp.query(res.body, '$..url'));
+
+  const pic_path = "$.." + "url"
+  const name_path = "$.." + "title"
+
+  // resp.send({"pic": jp.query(res.body, pic_path).shift(), "name": jp.query(res.body, name_path).shift() })
+  resp.send(Object.assign({}, {"status": res.status}, {"headers": res.headers},{"body": res.body}))
+
 })
 
 app.get('/sheet/:sheetId', (req, res, next) => {
